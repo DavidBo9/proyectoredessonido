@@ -31,7 +31,7 @@ const ExampleToast = () => {
         >
           <rect width="100%" height="100%" fill="#007aff"></rect>
         </svg>
-        <strong className="me-auto">CoreUI for React.js</strong>
+        <strong className="me-auto">Proyecto Redes</strong>
         <small>7 min ago</small>
       </CToastHeader>
       <CToastBody>Hello, world! This is a toast message.</CToastBody>

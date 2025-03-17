@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 
 import {
@@ -9,15 +9,67 @@ import {
   CDropdownItem,
   CDropdownToggle,
   CWidgetStatsA,
+  CBadge,
 } from '@coreui/react'
 import { getStyle } from '@coreui/utils'
 import { CChartBar, CChartLine } from '@coreui/react-chartjs'
 import CIcon from '@coreui/icons-react'
 import { cilArrowBottom, cilArrowTop, cilOptions } from '@coreui/icons'
 
-const WidgetsDropdown = (props) => {
+const WidgetsDropdown = ({ className, location = 'Esports' }) => {
   const widgetChartRef1 = useRef(null)
   const widgetChartRef2 = useRef(null)
+  
+  // Simulated data - replace with API call to your Arduino sensors
+  const [sensorData, setSensorData] = useState({
+    'Esports': {
+      temperature: { current: 27, trend: 0.9, historical: [22, 24, 25, 26, 27, 27, 27] },
+      decibel: { current: 45, trend: -12.4, historical: [65, 59, 52, 48, 47, 46, 45] },
+      humidity: { current: 42.5, trend: 4.7, historical: [38, 39, 40, 41, 42, 42, 42.5] },
+      battery: { current: 87, trend: -3.6, historical: [100, 98, 96, 93, 91, 89, 87] }
+    },
+    'LabIA': {
+      temperature: { current: 29, trend: 2.3, historical: [24, 25, 26, 27, 28, 28, 29] },
+      decibel: { current: 58, trend: 15.6, historical: [42, 45, 48, 52, 54, 56, 58] },
+      humidity: { current: 48.7, trend: 8.2, historical: [40, 42, 44, 45, 46, 47, 48.7] },
+      battery: { current: 92, trend: -2.1, historical: [100, 98, 97, 95, 94, 93, 92] }
+    },
+    'J140': {
+      temperature: { current: 24, trend: -1.2, historical: [26, 26, 25, 25, 24, 24, 24] },
+      decibel: { current: 32, trend: -24.5, historical: [50, 45, 42, 40, 38, 35, 32] },
+      humidity: { current: 38.2, trend: 2.8, historical: [35, 36, 36, 37, 37, 38, 38.2] },
+      battery: { current: 84, trend: -4.2, historical: [100, 97, 94, 91, 88, 86, 84] }
+    },
+    'IDIT2': {
+      temperature: { current: 22, trend: -3.5, historical: [26, 25, 24, 24, 23, 22, 22] },
+      decibel: { current: 39, trend: -18.7, historical: [60, 55, 50, 48, 45, 42, 39] },
+      humidity: { current: 52.1, trend: 9.4, historical: [45, 46, 47, 48, 49, 51, 52.1] },
+      battery: { current: 76, trend: -5.8, historical: [100, 95, 90, 85, 82, 79, 76] }
+    }
+  });
+
+  // Function to determine threshold status
+  const getThresholdStatus = (type, value) => {
+    if (type === 'temperature') {
+      if (value > 30) return 'danger';
+      if (value > 27) return 'warning';
+      if (value < 18) return 'info';
+      return 'success';
+    } else if (type === 'decibel') {
+      if (value > 70) return 'danger';
+      if (value > 55) return 'warning';
+      return 'success';
+    } else if (type === 'humidity') {
+      if (value > 60) return 'danger';
+      if (value < 30) return 'warning';
+      return 'success';
+    } else if (type === 'battery') {
+      if (value < 20) return 'danger';
+      if (value < 40) return 'warning';
+      return 'success';
+    }
+    return 'primary';
+  };
 
   useEffect(() => {
     document.documentElement.addEventListener('ColorSchemeChange', () => {
@@ -35,32 +87,51 @@ const WidgetsDropdown = (props) => {
         })
       }
     })
-  }, [widgetChartRef1, widgetChartRef2])
+    
+    // Here you would fetch data from your API
+    // Example: 
+    // const fetchSensorData = async () => {
+    //   try {
+    //     const response = await fetch('/api/sensors');
+    //     const data = await response.json();
+    //     setSensorData(data);
+    //   } catch (error) {
+    //     console.error('Error fetching sensor data:', error);
+    //   }
+    // };
+    // 
+    // fetchSensorData();
+    // const interval = setInterval(fetchSensorData, 60000); // Update every minute
+    // return () => clearInterval(interval);
+    
+  }, [widgetChartRef1, widgetChartRef2]);
+
+  // Get data for the selected location
+  const locationData = sensorData[location] || sensorData['Esports'];
 
   return (
-    <CRow className={props.className} xs={{ gutter: 4 }}>
-      <CCol sm={6} xl={4} xxl={3}>
+    <CRow className={className} xs={{ gutter: 4 }}>
+      <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color="primary"
+          color={getThresholdStatus('temperature', locationData.temperature.current)}
           value={
             <>
-              26K{' '}
+              {locationData.temperature.current}°C{' '}
               <span className="fs-6 fw-normal">
-                (-12.4% <CIcon icon={cilArrowBottom} />)
+                ({locationData.temperature.trend > 0 ? '+' : ''}{locationData.temperature.trend}% <CIcon icon={locationData.temperature.trend > 0 ? cilArrowTop : cilArrowBottom} />)
               </span>
             </>
           }
-          title="Users"
+          title="Temperature"
           action={
             <CDropdown alignment="end">
               <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
                 <CIcon icon={cilOptions} />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
+                <CDropdownItem>Set Alert Thresholds</CDropdownItem>
+                <CDropdownItem>View Detailed History</CDropdownItem>
+                <CDropdownItem>Calibrate Sensor</CDropdownItem>
               </CDropdownMenu>
             </CDropdown>
           }
@@ -70,14 +141,14 @@ const WidgetsDropdown = (props) => {
               className="mt-3 mx-3"
               style={{ height: '70px' }}
               data={{
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
                 datasets: [
                   {
-                    label: 'My First dataset',
+                    label: 'Temperature',
                     backgroundColor: 'transparent',
                     borderColor: 'rgba(255,255,255,.55)',
                     pointBackgroundColor: getStyle('--cui-primary'),
-                    data: [65, 59, 84, 84, 51, 55, 40],
+                    data: locationData.temperature.historical,
                   },
                 ],
               }}
@@ -102,8 +173,8 @@ const WidgetsDropdown = (props) => {
                     },
                   },
                   y: {
-                    min: 30,
-                    max: 89,
+                    min: Math.min(...locationData.temperature.historical) - 5,
+                    max: Math.max(...locationData.temperature.historical) + 5,
                     display: false,
                     grid: {
                       display: false,
@@ -129,28 +200,27 @@ const WidgetsDropdown = (props) => {
           }
         />
       </CCol>
-      <CCol sm={6} xl={4} xxl={3}>
+      <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color="info"
+          color={getThresholdStatus('decibel', locationData.decibel.current)}
           value={
             <>
-              $6.200{' '}
+              {locationData.decibel.current} dB{' '}
               <span className="fs-6 fw-normal">
-                (40.9% <CIcon icon={cilArrowTop} />)
+                ({locationData.decibel.trend > 0 ? '+' : ''}{locationData.decibel.trend}% <CIcon icon={locationData.decibel.trend > 0 ? cilArrowTop : cilArrowBottom} />)
               </span>
             </>
           }
-          title="Income"
+          title="Noise Level"
           action={
             <CDropdown alignment="end">
               <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
                 <CIcon icon={cilOptions} />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
+                <CDropdownItem>Set Alert Thresholds</CDropdownItem>
+                <CDropdownItem>View Detailed History</CDropdownItem>
+                <CDropdownItem>Calibrate Sensor</CDropdownItem>
               </CDropdownMenu>
             </CDropdown>
           }
@@ -160,14 +230,14 @@ const WidgetsDropdown = (props) => {
               className="mt-3 mx-3"
               style={{ height: '70px' }}
               data={{
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
                 datasets: [
                   {
-                    label: 'My First dataset',
+                    label: 'Decibels',
                     backgroundColor: 'transparent',
                     borderColor: 'rgba(255,255,255,.55)',
                     pointBackgroundColor: getStyle('--cui-info'),
-                    data: [1, 18, 9, 17, 34, 22, 11],
+                    data: locationData.decibel.historical,
                   },
                 ],
               }}
@@ -192,8 +262,8 @@ const WidgetsDropdown = (props) => {
                     },
                   },
                   y: {
-                    min: -9,
-                    max: 39,
+                    min: Math.min(...locationData.decibel.historical) - 5,
+                    max: Math.max(...locationData.decibel.historical) + 5,
                     display: false,
                     grid: {
                       display: false,
@@ -218,28 +288,27 @@ const WidgetsDropdown = (props) => {
           }
         />
       </CCol>
-      <CCol sm={6} xl={4} xxl={3}>
+      <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color="warning"
+          color={getThresholdStatus('humidity', locationData.humidity.current)}
           value={
             <>
-              2.49%{' '}
+              {locationData.humidity.current}%{' '}
               <span className="fs-6 fw-normal">
-                (84.7% <CIcon icon={cilArrowTop} />)
+                ({locationData.humidity.trend > 0 ? '+' : ''}{locationData.humidity.trend}% <CIcon icon={locationData.humidity.trend > 0 ? cilArrowTop : cilArrowBottom} />)
               </span>
             </>
           }
-          title="Conversion Rate"
+          title="Humidity"
           action={
             <CDropdown alignment="end">
               <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
                 <CIcon icon={cilOptions} />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
+                <CDropdownItem>Set Alert Thresholds</CDropdownItem>
+                <CDropdownItem>View Detailed History</CDropdownItem>
+                <CDropdownItem>Calibrate Sensor</CDropdownItem>
               </CDropdownMenu>
             </CDropdown>
           }
@@ -248,13 +317,13 @@ const WidgetsDropdown = (props) => {
               className="mt-3"
               style={{ height: '70px' }}
               data={{
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
                 datasets: [
                   {
-                    label: 'My First dataset',
+                    label: 'Humidity',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: [78, 81, 80, 45, 34, 12, 40],
+                    data: locationData.humidity.historical,
                     fill: true,
                   },
                 ],
@@ -290,28 +359,27 @@ const WidgetsDropdown = (props) => {
           }
         />
       </CCol>
-      <CCol sm={6} xl={4} xxl={3}>
+      <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color="danger"
+          color={getThresholdStatus('battery', locationData.battery.current)}
           value={
             <>
-              44K{' '}
+              {locationData.battery.current}%{' '}
               <span className="fs-6 fw-normal">
-                (-23.6% <CIcon icon={cilArrowBottom} />)
+                ({locationData.battery.trend}% <CIcon icon={cilArrowBottom} />)
               </span>
             </>
           }
-          title="Sessions"
+          title="Battery Status"
           action={
             <CDropdown alignment="end">
               <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
                 <CIcon icon={cilOptions} />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
+                <CDropdownItem>Set Alert Thresholds</CDropdownItem>
+                <CDropdownItem>View Detailed History</CDropdownItem>
+                <CDropdownItem>Maintenance Schedule</CDropdownItem>
               </CDropdownMenu>
             </CDropdown>
           }
@@ -320,30 +388,13 @@ const WidgetsDropdown = (props) => {
               className="mt-3 mx-3"
               style={{ height: '70px' }}
               data={{
-                labels: [
-                  'January',
-                  'February',
-                  'March',
-                  'April',
-                  'May',
-                  'June',
-                  'July',
-                  'August',
-                  'September',
-                  'October',
-                  'November',
-                  'December',
-                  'January',
-                  'February',
-                  'March',
-                  'April',
-                ],
+                labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
                 datasets: [
                   {
-                    label: 'My First dataset',
+                    label: 'Battery',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: [78, 81, 80, 45, 34, 12, 40, 85, 65, 23, 12, 98, 34, 84, 67, 82],
+                    data: locationData.battery.historical,
                     barPercentage: 0.6,
                   },
                 ],
@@ -390,7 +441,7 @@ const WidgetsDropdown = (props) => {
 
 WidgetsDropdown.propTypes = {
   className: PropTypes.string,
-  withCharts: PropTypes.bool,
+  location: PropTypes.string,
 }
 
 export default WidgetsDropdown
