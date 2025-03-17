@@ -16,61 +16,79 @@ import { CChartBar, CChartLine } from '@coreui/react-chartjs'
 import CIcon from '@coreui/icons-react'
 import { cilArrowBottom, cilArrowTop, cilOptions } from '@coreui/icons'
 
-const WidgetsDropdown = ({ className, location = 'Esports' }) => {
+const WidgetsDropdown = ({ className, location = 'Living Room', sensorData }) => {
   const widgetChartRef1 = useRef(null)
   const widgetChartRef2 = useRef(null)
   
-  // Simulated data - replace with API call to your Arduino sensors
-  const [sensorData, setSensorData] = useState({
-    'Esports': {
-      temperature: { current: 27, trend: 0.9, historical: [22, 24, 25, 26, 27, 27, 27] },
-      decibel: { current: 45, trend: -12.4, historical: [65, 59, 52, 48, 47, 46, 45] },
-      humidity: { current: 42.5, trend: 4.7, historical: [38, 39, 40, 41, 42, 42, 42.5] },
-      battery: { current: 87, trend: -3.6, historical: [100, 98, 96, 93, 91, 89, 87] }
-    },
-    'LabIA': {
-      temperature: { current: 29, trend: 2.3, historical: [24, 25, 26, 27, 28, 28, 29] },
-      decibel: { current: 58, trend: 15.6, historical: [42, 45, 48, 52, 54, 56, 58] },
-      humidity: { current: 48.7, trend: 8.2, historical: [40, 42, 44, 45, 46, 47, 48.7] },
-      battery: { current: 92, trend: -2.1, historical: [100, 98, 97, 95, 94, 93, 92] }
-    },
-    'J140': {
-      temperature: { current: 24, trend: -1.2, historical: [26, 26, 25, 25, 24, 24, 24] },
-      decibel: { current: 32, trend: -24.5, historical: [50, 45, 42, 40, 38, 35, 32] },
-      humidity: { current: 38.2, trend: 2.8, historical: [35, 36, 36, 37, 37, 38, 38.2] },
-      battery: { current: 84, trend: -4.2, historical: [100, 97, 94, 91, 88, 86, 84] }
-    },
-    'IDIT2': {
-      temperature: { current: 22, trend: -3.5, historical: [26, 25, 24, 24, 23, 22, 22] },
-      decibel: { current: 39, trend: -18.7, historical: [60, 55, 50, 48, 45, 42, 39] },
-      humidity: { current: 52.1, trend: 9.4, historical: [45, 46, 47, 48, 49, 51, 52.1] },
-      battery: { current: 76, trend: -5.8, historical: [100, 95, 90, 85, 82, 79, 76] }
+  // Historical data for charts - in a real implementation, this would come from an API
+  // Here we'll simulate it
+  const [historicalData, setHistoricalData] = useState({
+    temperature: [0, 0, 0, 0, 0, 0, 0],
+    decibel: [0, 0, 0, 0, 0, 0, 0],
+    humidity: [0, 0, 0, 0, 0, 0, 0],
+    battery: [100, 95, 90, 85, 80, 75, 70]
+  })
+
+  // Update historical data with the current reading
+  useEffect(() => {
+    if (sensorData) {
+      setHistoricalData(prev => {
+        const newData = { ...prev }
+        
+        // Add current values to historical arrays
+        if (sensorData.temperature) {
+          newData.temperature = [...prev.temperature.slice(1), sensorData.temperature]
+        }
+        
+        if (sensorData.decibel) {
+          newData.decibel = [...prev.decibel.slice(1), sensorData.decibel]
+        }
+        
+        if (sensorData.humidity) {
+          newData.humidity = [...prev.humidity.slice(1), sensorData.humidity]
+        }
+        
+        return newData
+      })
     }
-  });
+  }, [sensorData])
 
   // Function to determine threshold status
   const getThresholdStatus = (type, value) => {
+    if (!value && value !== 0) return 'primary'
+    
     if (type === 'temperature') {
-      if (value > 30) return 'danger';
-      if (value > 27) return 'warning';
-      if (value < 18) return 'info';
-      return 'success';
+      if (value > 30) return 'danger'
+      if (value > 27) return 'warning'
+      if (value < 18) return 'info'
+      return 'success'
     } else if (type === 'decibel') {
-      if (value > 70) return 'danger';
-      if (value > 55) return 'warning';
-      return 'success';
+      if (value > 70) return 'danger'
+      if (value > 55) return 'warning'
+      return 'success'
     } else if (type === 'humidity') {
-      if (value > 60) return 'danger';
-      if (value < 30) return 'warning';
-      return 'success';
+      if (value > 60) return 'danger'
+      if (value < 30) return 'warning'
+      return 'success'
     } else if (type === 'battery') {
-      if (value < 20) return 'danger';
-      if (value < 40) return 'warning';
-      return 'success';
+      if (value < 20) return 'danger'
+      if (value < 40) return 'warning'
+      return 'success'
     }
-    return 'primary';
-  };
+    return 'primary'
+  }
 
+  // Calculate trend (percentage change) from previous reading
+  const calculateTrend = (currentValue, historicalValues) => {
+    if (!historicalValues || historicalValues.length < 2) return 0
+    
+    const previousValue = historicalValues[historicalValues.length - 2]
+    if (previousValue === 0) return 0
+    
+    return ((currentValue - previousValue) / previousValue) * 100
+  }
+
+  // Handle theme changes
   useEffect(() => {
     document.documentElement.addEventListener('ColorSchemeChange', () => {
       if (widgetChartRef1.current) {
@@ -87,38 +105,32 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
         })
       }
     })
-    
-    // Here you would fetch data from your API
-    // Example: 
-    // const fetchSensorData = async () => {
-    //   try {
-    //     const response = await fetch('/api/sensors');
-    //     const data = await response.json();
-    //     setSensorData(data);
-    //   } catch (error) {
-    //     console.error('Error fetching sensor data:', error);
-    //   }
-    // };
-    // 
-    // fetchSensorData();
-    // const interval = setInterval(fetchSensorData, 60000); // Update every minute
-    // return () => clearInterval(interval);
-    
-  }, [widgetChartRef1, widgetChartRef2]);
+  }, [widgetChartRef1, widgetChartRef2])
 
-  // Get data for the selected location
-  const locationData = sensorData[location] || sensorData['Esports'];
+  // Default data if API data is not available yet
+  const data = sensorData || {
+    temperature: 0,
+    decibel: 0,
+    humidity: 0,
+    battery: 90
+  }
+
+  // Calculate trends
+  const temperatureTrend = calculateTrend(data.temperature, historicalData.temperature)
+  const decibelTrend = calculateTrend(data.decibel, historicalData.decibel)
+  const humidityTrend = calculateTrend(data.humidity, historicalData.humidity)
+  const batteryTrend = -1 * Math.abs(calculateTrend(data.battery, historicalData.battery)) // Battery always decreases
 
   return (
     <CRow className={className} xs={{ gutter: 4 }}>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color={getThresholdStatus('temperature', locationData.temperature.current)}
+          color={getThresholdStatus('temperature', data.temperature)}
           value={
             <>
-              {locationData.temperature.current}°C{' '}
+              {data.temperature ? data.temperature.toFixed(1) : '0'}°C{' '}
               <span className="fs-6 fw-normal">
-                ({locationData.temperature.trend > 0 ? '+' : ''}{locationData.temperature.trend}% <CIcon icon={locationData.temperature.trend > 0 ? cilArrowTop : cilArrowBottom} />)
+                ({temperatureTrend > 0 ? '+' : ''}{temperatureTrend.toFixed(1)}% <CIcon icon={temperatureTrend > 0 ? cilArrowTop : cilArrowBottom} />)
               </span>
             </>
           }
@@ -148,7 +160,7 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
                     backgroundColor: 'transparent',
                     borderColor: 'rgba(255,255,255,.55)',
                     pointBackgroundColor: getStyle('--cui-primary'),
-                    data: locationData.temperature.historical,
+                    data: historicalData.temperature,
                   },
                 ],
               }}
@@ -173,8 +185,8 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
                     },
                   },
                   y: {
-                    min: Math.min(...locationData.temperature.historical) - 5,
-                    max: Math.max(...locationData.temperature.historical) + 5,
+                    min: Math.min(...historicalData.temperature) - 5,
+                    max: Math.max(...historicalData.temperature) + 5,
                     display: false,
                     grid: {
                       display: false,
@@ -202,12 +214,12 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
       </CCol>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color={getThresholdStatus('decibel', locationData.decibel.current)}
+          color={getThresholdStatus('decibel', data.decibel)}
           value={
             <>
-              {locationData.decibel.current} dB{' '}
+              {data.decibel ? data.decibel.toFixed(1) : '0'} dB{' '}
               <span className="fs-6 fw-normal">
-                ({locationData.decibel.trend > 0 ? '+' : ''}{locationData.decibel.trend}% <CIcon icon={locationData.decibel.trend > 0 ? cilArrowTop : cilArrowBottom} />)
+                ({decibelTrend > 0 ? '+' : ''}{decibelTrend.toFixed(1)}% <CIcon icon={decibelTrend > 0 ? cilArrowTop : cilArrowBottom} />)
               </span>
             </>
           }
@@ -237,7 +249,7 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
                     backgroundColor: 'transparent',
                     borderColor: 'rgba(255,255,255,.55)',
                     pointBackgroundColor: getStyle('--cui-info'),
-                    data: locationData.decibel.historical,
+                    data: historicalData.decibel,
                   },
                 ],
               }}
@@ -262,8 +274,8 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
                     },
                   },
                   y: {
-                    min: Math.min(...locationData.decibel.historical) - 5,
-                    max: Math.max(...locationData.decibel.historical) + 5,
+                    min: Math.min(...historicalData.decibel) - 5,
+                    max: Math.max(...historicalData.decibel) + 5,
                     display: false,
                     grid: {
                       display: false,
@@ -290,12 +302,12 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
       </CCol>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color={getThresholdStatus('humidity', locationData.humidity.current)}
+          color={getThresholdStatus('humidity', data.humidity)}
           value={
             <>
-              {locationData.humidity.current}%{' '}
+              {data.humidity ? data.humidity.toFixed(1) : '0'}%{' '}
               <span className="fs-6 fw-normal">
-                ({locationData.humidity.trend > 0 ? '+' : ''}{locationData.humidity.trend}% <CIcon icon={locationData.humidity.trend > 0 ? cilArrowTop : cilArrowBottom} />)
+                ({humidityTrend > 0 ? '+' : ''}{humidityTrend.toFixed(1)}% <CIcon icon={humidityTrend > 0 ? cilArrowTop : cilArrowBottom} />)
               </span>
             </>
           }
@@ -323,7 +335,7 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
                     label: 'Humidity',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: locationData.humidity.historical,
+                    data: historicalData.humidity,
                     fill: true,
                   },
                 ],
@@ -361,12 +373,12 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
       </CCol>
       <CCol sm={6} xl={3}>
         <CWidgetStatsA
-          color={getThresholdStatus('battery', locationData.battery.current)}
+          color={getThresholdStatus('battery', data.battery)}
           value={
             <>
-              {locationData.battery.current}%{' '}
+              {data.battery ? data.battery : '0'}%{' '}
               <span className="fs-6 fw-normal">
-                ({locationData.battery.trend}% <CIcon icon={cilArrowBottom} />)
+                ({batteryTrend.toFixed(1)}% <CIcon icon={cilArrowBottom} />)
               </span>
             </>
           }
@@ -394,7 +406,7 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
                     label: 'Battery',
                     backgroundColor: 'rgba(255,255,255,.2)',
                     borderColor: 'rgba(255,255,255,.55)',
-                    data: locationData.battery.historical,
+                    data: historicalData.battery,
                     barPercentage: 0.6,
                   },
                 ],
@@ -442,6 +454,7 @@ const WidgetsDropdown = ({ className, location = 'Esports' }) => {
 WidgetsDropdown.propTypes = {
   className: PropTypes.string,
   location: PropTypes.string,
+  sensorData: PropTypes.object,
 }
 
 export default WidgetsDropdown

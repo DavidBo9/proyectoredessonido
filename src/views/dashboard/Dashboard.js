@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import classNames from 'classnames'
+import axios from 'axios'
 
 import {
   CButton,
@@ -16,9 +17,9 @@ import {
   CNavLink,
   CTabContent,
   CTabPane,
-  CTabs,
   CBadge,
   CAlert,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -36,91 +37,302 @@ import MainChart from './MainChart'
 import LocationSelector from './LocationSelector'
 
 const Dashboard = () => {
-  const [activeLocation, setActiveLocation] = useState('Esports')
+  const [activeLocation, setActiveLocation] = useState('Living Room')
   const [timeRange, setTimeRange] = useState('Day')
   const [activeTab, setActiveTab] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   
-  // Simulated sensor health data - this would come from your API
-  const sensorHealth = {
-    'Esports': { status: 'success', lastSeen: '2 minutes ago', batteryLevel: 87, connectivity: 'Good' },
-    'LabIA': { status: 'warning', lastSeen: '15 minutes ago', batteryLevel: 62, connectivity: 'Fair' },
-    'J140': { status: 'success', lastSeen: '5 minutes ago', batteryLevel: 92, connectivity: 'Excellent' },
-    'IDIT2': { status: 'danger', lastSeen: '2 hours ago', batteryLevel: 23, connectivity: 'Poor' },
+  // Store real-time sensor data
+  const [sensorData, setSensorData] = useState({
+    'Living Room': { temperature: 0, decibel: 0, humidity: 0, battery: 90, lastUpdated: null },
+    'Kitchen': { temperature: 0, decibel: 0, humidity: 0, battery: 85, lastUpdated: null },
+    'Bedroom': { temperature: 0, decibel: 0, humidity: 0, battery: 95, lastUpdated: null },
+    'Garage': { temperature: 0, decibel: 0, humidity: 0, battery: 80, lastUpdated: null },
+  })
+
+  // Store historical data (in a real app, this might come from the API)
+  const [historicalData, setHistoricalData] = useState({
+    'Living Room': {
+      temperature: { Day: [], Month: [], Year: [] },
+      decibel: { Day: [], Month: [], Year: [] },
+    },
+    'Kitchen': {
+      temperature: { Day: [], Month: [], Year: [] },
+      decibel: { Day: [], Month: [], Year: [] },
+    },
+    'Bedroom': {
+      temperature: { Day: [], Month: [], Year: [] },
+      decibel: { Day: [], Month: [], Year: [] },
+    },
+    'Garage': {
+      temperature: { Day: [], Month: [], Year: [] },
+      decibel: { Day: [], Month: [], Year: [] },
+    },
+  })
+  
+  // Map locations to sensor IDs
+  const locationToSensorId = {
+    'Living Room': 1,
+    'Kitchen': 2,
+    'Bedroom': 3,
+    'Garage': 4
   }
 
-  // Example alert data - would be determined by your monitoring logic
-  const [alerts, setAlerts] = useState([
-    { location: 'LabIA', type: 'temperature', message: 'Temperature exceeds threshold (29°C)', time: '15 minutes ago', severity: 'warning' },
-    { location: 'IDIT2', type: 'connectivity', message: 'Sensor offline', time: '2 hours ago', severity: 'danger' },
-    { location: 'Esports', type: 'noise', message: 'Noise spike detected (78dB)', time: '1 hour ago', severity: 'warning' },
-  ])
+  // Simulated historical data (normally you'd get this from an API)
+  const populateHistoricalData = () => {
+    const locations = ['Living Room', 'Kitchen', 'Bedroom', 'Garage'];
+    const timeRanges = ['Hour', 'Day', 'Month', 'Year']; // Added 'Hour'
+    const types = ['temperature', 'decibel'];
+    
+    const newHistoricalData = { ...historicalData };
+    
+    // Generate data for each location, time range, and sensor type
+    locations.forEach(location => {
+      types.forEach(type => {
+        timeRanges.forEach(range => {
+          const dataLength = range === 'Hour' ? 60 : range === 'Day' ? 24 : range === 'Month' ? 30 : 12;
+          const baseValue = type === 'temperature' ? 
+                             (location === 'Living Room' ? 24 : 
+                             location === 'Kitchen' ? 26 : 
+                             location === 'Bedroom' ? 22 : 20) : 
+                             (location === 'Living Room' ? 50 : 
+                             location === 'Kitchen' ? 60 : 
+                             location === 'Bedroom' ? 35 : 45);
+          
+          newHistoricalData[location][type][range] = Array.from({ length: dataLength }, () => 
+            baseValue + Math.floor(Math.random() * 10) - 5
+          );
+        });
+      });
+    });
+    
+    setHistoricalData(newHistoricalData);
+  };
+
+  // Fetch data from all sensors
+  const fetchSensorData = async () => {
+    setLoading(true);
+    try {
+      const responses = await Promise.all([
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/1'),
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/2'),
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/3'),
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/4')
+      ]);
+      
+      const newSensorData = { ...sensorData };
+      
+      // Process responses
+      responses.forEach((response, index) => {
+        const sensorId = index + 1;
+        const location = Object.keys(locationToSensorId).find(
+          key => locationToSensorId[key] === sensorId
+        );
+        
+        if (location && response.data) {
+          // Convert sound value from voltage to dB
+          const voltageValue = response.data.soundValue;
+          const referenceVoltage = 1.0; // Adjust based on your sensor calibration
+          const decibelValue = Math.abs(voltageValue) < 0.001 ? 0 : 
+                               20 * Math.log10(Math.abs(voltageValue) / referenceVoltage);
+          
+          newSensorData[location] = {
+            temperature: response.data.temperatureValue,
+            decibel: decibelValue, // Use converted value
+            humidity: response.data.humidityValue,
+            battery: newSensorData[location].battery,
+            lastUpdated: response.data.date
+          };
+        }
+      });
+      
+      setSensorData(newSensorData);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching sensor data:", err);
+      setError("Failed to fetch sensor data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial data fetch
+    fetchSensorData();
+    
+    // Generate simulated historical data (in a real app, you'd fetch this from an API)
+    populateHistoricalData();
+    
+    // Set up interval for regular updates (every 30 seconds)
+    const interval = setInterval(fetchSensorData, 30000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Update historical data when new sensor readings come in
+    Object.entries(sensorData).forEach(([location, data]) => {
+      if (data.lastUpdated) {
+        const newHistoricalData = { ...historicalData };
+        
+        // Add latest readings to historical data arrays
+        if (!newHistoricalData[location].temperature.Day.includes(data.temperature)) {
+          newHistoricalData[location].temperature.Day.push(data.temperature);
+          // Keep only last 24 readings
+          if (newHistoricalData[location].temperature.Day.length > 24) {
+            newHistoricalData[location].temperature.Day.shift();
+          }
+        }
+        
+        if (!newHistoricalData[location].decibel.Day.includes(data.decibel)) {
+          newHistoricalData[location].decibel.Day.push(data.decibel);
+          // Keep only last 24 readings
+          if (newHistoricalData[location].decibel.Day.length > 24) {
+            newHistoricalData[location].decibel.Day.shift();
+          }
+        }
+        
+        setHistoricalData(newHistoricalData);
+      }
+    });
+  }, [sensorData]);
+
+  // Example alert data - normally would be derived from sensor readings
+  const [alerts, setAlerts] = useState([])
+  
+  // Update alerts based on sensor data
+  useEffect(() => {
+    const newAlerts = [];
+    
+    Object.entries(sensorData).forEach(([location, data]) => {
+      if (data.temperature > 30) {
+        newAlerts.push({
+          location, 
+          type: 'temperature',
+          message: `Temperature exceeds threshold (${data.temperature.toFixed(1)}°C)`,
+          time: 'Just now',
+          severity: 'danger'
+        });
+      }
+      
+      if (data.decibel > 70) {
+        newAlerts.push({
+          location, 
+          type: 'noise',
+          message: `Noise level exceeds threshold (${data.decibel.toFixed(1)}dB)`,
+          time: 'Just now',
+          severity: 'danger'
+        });
+      }
+      
+      if (data.humidity < 30 || data.humidity > 60) {
+        newAlerts.push({
+          location, 
+          type: 'humidity',
+          message: `Humidity ${data.humidity < 30 ? 'below' : 'above'} recommended level (${data.humidity.toFixed(1)}%)`,
+          time: 'Just now',
+          severity: 'warning'
+        });
+      }
+    });
+    
+    setAlerts(newAlerts);
+  }, [sensorData]);
   
   // Filter alerts relevant to current location
   const locationAlerts = alerts.filter(alert => alert.location === activeLocation)
 
-  // Progress example data for the selected location
+  // Progress example data based on actual sensor readings
   const getProgressData = (location) => {
-    const data = {
-      'Esports': [
-        { title: 'Temperature Range', value: '20-27°C', percent: 65, color: 'success' },
-        { title: 'Noise Average', value: '45dB', percent: 38, color: 'success' },
-        { title: 'Humidity', value: '42%', percent: 42, color: 'info' },
-        { title: 'Sensor Uptime', value: '99.7%', percent: 99.7, color: 'primary' },
-        { title: 'Alert Count (24h)', value: '1 alert', percent: 10, color: 'warning' },
-      ],
-      'LabIA': [
-        { title: 'Temperature Range', value: '24-29°C', percent: 82, color: 'warning' },
-        { title: 'Noise Average', value: '58dB', percent: 65, color: 'warning' },
-        { title: 'Humidity', value: '48%', percent: 48, color: 'info' },
-        { title: 'Sensor Uptime', value: '96.3%', percent: 96.3, color: 'info' },
-        { title: 'Alert Count (24h)', value: '2 alerts', percent: 20, color: 'warning' },
-      ],
-      'J140': [
-        { title: 'Temperature Range', value: '19-24°C', percent: 45, color: 'success' },
-        { title: 'Noise Average', value: '32dB', percent: 25, color: 'success' },
-        { title: 'Humidity', value: '38%', percent: 38, color: 'info' },
-        { title: 'Sensor Uptime', value: '99.8%', percent: 99.8, color: 'primary' },
-        { title: 'Alert Count (24h)', value: '0 alerts', percent: 0, color: 'success' },
-      ],
-      'IDIT2': [
-        { title: 'Temperature Range', value: '17-22°C', percent: 35, color: 'info' },
-        { title: 'Noise Average', value: '39dB', percent: 30, color: 'success' },
-        { title: 'Humidity', value: '52%', percent: 52, color: 'warning' },
-        { title: 'Sensor Uptime', value: '78.2%', percent: 78.2, color: 'danger' },
-        { title: 'Alert Count (24h)', value: '3 alerts', percent: 30, color: 'danger' },
-      ],
-    }
-    return data[location] || data['Esports']
-  }
+    const data = sensorData[location] || { temperature: 0, decibel: 0, humidity: 0, battery: 0 };
+    
+    return [
+      { 
+        title: 'Temperature', 
+        value: `${data.temperature.toFixed(1)}°C`, 
+        percent: Math.min(100, (data.temperature / 40) * 100), 
+        color: data.temperature > 30 ? 'danger' : data.temperature > 27 ? 'warning' : 'success' 
+      },
+      { 
+        title: 'Noise Level', 
+        value: `${data.decibel.toFixed(1)}dB`, 
+        percent: Math.min(100, (data.decibel / 100) * 100), 
+        color: data.decibel > 70 ? 'danger' : data.decibel > 55 ? 'warning' : 'success' 
+      },
+      { 
+        title: 'Humidity', 
+        value: `${data.humidity.toFixed(1)}%`, 
+        percent: data.humidity, 
+        color: data.humidity > 60 ? 'danger' : data.humidity < 30 ? 'warning' : 'info' 
+      },
+      { 
+        title: 'Battery Status', 
+        value: `${data.battery}%`, 
+        percent: data.battery, 
+        color: data.battery < 20 ? 'danger' : data.battery < 40 ? 'warning' : 'primary' 
+      },
+      { 
+        title: 'Alerts', 
+        value: `${locationAlerts.length} alert${locationAlerts.length !== 1 ? 's' : ''}`, 
+        percent: Math.min(100, locationAlerts.length * 20), 
+        color: locationAlerts.length > 2 ? 'danger' : locationAlerts.length > 0 ? 'warning' : 'success' 
+      },
+    ];
+  };
 
-  // Fetch sensor data - would be replaced with actual API calls
-  useEffect(() => {
-    // Example of how you might fetch sensor data:
-    // const fetchSensorData = async () => {
-    //   try {
-    //     const response = await fetch(`/api/sensors/${activeLocation}`);
-    //     const data = await response.json();
-    //     // Update state with fetched data
-    //   } catch (error) {
-    //     console.error('Error fetching sensor data:', error);
-    //   }
-    // };
-    //
-    // fetchSensorData();
-    // 
-    // Real-time updates would use WebSockets or polling:
-    // const interval = setInterval(fetchSensorData, 60000);
-    // return () => clearInterval(interval);
-  }, [activeLocation]);
+  // Sensor health data derived from actual readings
+  const getSensorHealth = (location) => {
+    const data = sensorData[location];
+    
+    // Check if last update is within the last 5 minutes
+    const lastUpdateTime = data.lastUpdated ? new Date(data.lastUpdated) : null;
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    
+    const isOnline = lastUpdateTime && lastUpdateTime > fiveMinutesAgo;
+    
+    // Determine status based on readings and online status
+    let status = isOnline ? 'success' : 'danger';
+    if (isOnline && (data.temperature > 30 || data.decibel > 70)) {
+      status = 'warning';
+    }
+    
+    return {
+      status,
+      lastSeen: data.lastUpdated ? new Date(data.lastUpdated).toLocaleTimeString() : 'Not available',
+      batteryLevel: 100, // Fixed at 100% since you're on computer power
+      connectivity: isOnline ? 'Good' : 'Disconnected',
+      isOnline: isOnline
+    };
+  };
 
   return (
     <>
       <LocationSelector 
         activeLocation={activeLocation}
         onLocationChange={setActiveLocation}
+        sensorData={sensorData}
       />
       
-      <WidgetsDropdown className="mb-4" location={activeLocation} />
+      {loading && (
+        <div className="d-flex justify-content-center my-3">
+          <CSpinner color="primary" />
+        </div>
+      )}
+      
+      {error && (
+        <CAlert color="danger" dismissible>
+          {error}
+        </CAlert>
+      )}
+      
+      <WidgetsDropdown 
+        className="mb-4" 
+        location={activeLocation} 
+        sensorData={sensorData[activeLocation]}
+      />
       
       {/* Main chart and tabs */}
       <CCard className="mb-4">
@@ -152,7 +364,12 @@ const Dashboard = () => {
             </CCol>
           </CRow>
           
-          <MainChart location={activeLocation} timeRange={timeRange} />
+          <MainChart 
+            location={activeLocation} 
+            timeRange={timeRange} 
+            currentData={sensorData[activeLocation]} 
+            historicalData={historicalData[activeLocation]}
+          />
         </CCardBody>
         <CCardFooter>
           <CRow
@@ -238,29 +455,18 @@ const Dashboard = () => {
                       <tr>
                         <td><strong>Status:</strong></td>
                         <td>
-                          <CBadge color={sensorHealth[activeLocation].status}>
-                            {sensorHealth[activeLocation].status === 'success' ? 'Online' : 
-                             sensorHealth[activeLocation].status === 'warning' ? 'Limited' : 'Offline'}
+                          <CBadge color={getSensorHealth(activeLocation).status}>
+                            {getSensorHealth(activeLocation).isOnline ? 'Online' : 'Offline'}
                           </CBadge>
                         </td>
                       </tr>
                       <tr>
                         <td><strong>Last Reading:</strong></td>
-                        <td>{sensorHealth[activeLocation].lastSeen}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Battery:</strong></td>
-                        <td>
-                          {sensorHealth[activeLocation].batteryLevel}%
-                          <CProgress thin className="mt-2" color={
-                            sensorHealth[activeLocation].batteryLevel > 70 ? 'success' : 
-                            sensorHealth[activeLocation].batteryLevel > 30 ? 'warning' : 'danger'
-                          } value={sensorHealth[activeLocation].batteryLevel} />
-                        </td>
+                        <td>{getSensorHealth(activeLocation).lastSeen}</td>
                       </tr>
                       <tr>
                         <td><strong>Connectivity:</strong></td>
-                        <td>{sensorHealth[activeLocation].connectivity}</td>
+                        <td>{getSensorHealth(activeLocation).connectivity}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -271,7 +477,7 @@ const Dashboard = () => {
                     <tbody>
                       <tr>
                         <td><strong>Device ID:</strong></td>
-                        <td>SN-{activeLocation.substring(0, 3).toUpperCase()}-1234</td>
+                        <td>SN-{locationToSensorId[activeLocation]}</td>
                       </tr>
                       <tr>
                         <td><strong>Model:</strong></td>
@@ -283,7 +489,7 @@ const Dashboard = () => {
                       </tr>
                       <tr>
                         <td><strong>Last Update:</strong></td>
-                        <td>March 10, 2025</td>
+                        <td>March 17, 2025</td>
                       </tr>
                     </tbody>
                   </table>
@@ -379,9 +585,9 @@ const Dashboard = () => {
                 <CCol md={6}>
                   <div className="mb-3">
                     <label className="form-label">Reading Frequency</label>
-                    <select className="form-select">
+                    <select defaultValue="60">
                       <option value="30">Every 30 seconds</option>
-                      <option value="60" selected>Every minute</option>
+                      <option value="60">Every minute</option>
                       <option value="300">Every 5 minutes</option>
                       <option value="900">Every 15 minutes</option>
                     </select>
