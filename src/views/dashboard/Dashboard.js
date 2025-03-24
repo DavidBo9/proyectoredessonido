@@ -51,25 +51,25 @@ const Dashboard = () => {
     'Garage': { temperature: 0, decibel: 0, humidity: 0, battery: 80, lastUpdated: null },
   })
 
-  // Store historical data (in a real app, this might come from the API)
+  // Store historical data
   const [historicalData, setHistoricalData] = useState({
     'Living Room': {
-      temperature: { Day: [], Month: [], Year: [] },
-      decibel: { Day: [], Month: [], Year: [] },
+      temperature: { Hour: [], Day: [], Month: [], Year: [] },
+      decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
     'Kitchen': {
-      temperature: { Day: [], Month: [], Year: [] },
-      decibel: { Day: [], Month: [], Year: [] },
+      temperature: { Hour: [], Day: [], Month: [], Year: [] },
+      decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
     'Bedroom': {
-      temperature: { Day: [], Month: [], Year: [] },
-      decibel: { Day: [], Month: [], Year: [] },
+      temperature: { Hour: [], Day: [], Month: [], Year: [] },
+      decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
     'Garage': {
-      temperature: { Day: [], Month: [], Year: [] },
-      decibel: { Day: [], Month: [], Year: [] },
-    },
-  })
+      temperature: { Hour: [], Day: [], Month: [], Year: [] },
+      decibel: { Hour: [], Day: [], Month: [], Year: [] }
+    }
+  });
   
   // Map locations to sensor IDs
   const locationToSensorId = {
@@ -79,40 +79,8 @@ const Dashboard = () => {
     'Garage': 4
   }
 
-  // Simulated historical data (normally you'd get this from an API)
-  const populateHistoricalData = () => {
-    const locations = ['Living Room', 'Kitchen', 'Bedroom', 'Garage'];
-    const timeRanges = ['Hour', 'Day', 'Month', 'Year']; // Added 'Hour'
-    const types = ['temperature', 'decibel'];
-    
-    const newHistoricalData = { ...historicalData };
-    
-    // Generate data for each location, time range, and sensor type
-    locations.forEach(location => {
-      types.forEach(type => {
-        timeRanges.forEach(range => {
-          const dataLength = range === 'Hour' ? 60 : range === 'Day' ? 24 : range === 'Month' ? 30 : 12;
-          const baseValue = type === 'temperature' ? 
-                             (location === 'Living Room' ? 24 : 
-                             location === 'Kitchen' ? 26 : 
-                             location === 'Bedroom' ? 22 : 20) : 
-                             (location === 'Living Room' ? 50 : 
-                             location === 'Kitchen' ? 60 : 
-                             location === 'Bedroom' ? 35 : 45);
-          
-          newHistoricalData[location][type][range] = Array.from({ length: dataLength }, () => 
-            baseValue + Math.floor(Math.random() * 10) - 5
-          );
-        });
-      });
-    });
-    
-    setHistoricalData(newHistoricalData);
-  };
-
-  // Fetch data from all sensors
+  // Fetch current data from all sensors
   const fetchSensorData = async () => {
-    setLoading(true);
     try {
       const responses = await Promise.all([
         axios.get('https://lab-redes-orm.vercel.app/api/sensordata/1'),
@@ -133,9 +101,9 @@ const Dashboard = () => {
         if (location && response.data) {
           // Convert sound value from voltage to dB
           const voltageValue = response.data.soundValue;
-          const referenceVoltage = 1.0; // Adjust based on your sensor calibration
+          const referenceVoltage = 0.001; // Adjust based on your sensor calibration
           const decibelValue = Math.abs(voltageValue) < 0.001 ? 0 : 
-                               20 * Math.log10(Math.abs(voltageValue) / referenceVoltage);
+                               20 * Math.log10(Math.abs(voltageValue));
           
           newSensorData[location] = {
             temperature: response.data.temperatureValue,
@@ -157,49 +125,200 @@ const Dashboard = () => {
     }
   };
 
+  // Fetch historical data for all sensors
+  const fetchHistoricalData = async () => {
+    try {
+      const responses = await Promise.all([
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/history/1'),
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/history/2'),
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/history/3'),
+        axios.get('https://lab-redes-orm.vercel.app/api/sensordata/history/4')
+      ]);
+      
+      const newHistoricalData = { ...historicalData };
+      
+      // Process each sensor's history
+      responses.forEach((response, index) => {
+        const sensorId = index + 1;
+        const location = Object.keys(locationToSensorId).find(
+          key => locationToSensorId[key] === sensorId
+        );
+        
+        if (location && response.data && response.data.length > 0) {
+          // Sort data by timestamp (newest first)
+          const sortedData = [...response.data].sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+          });
+          
+          // Process for Hour view (last 60 readings)
+          const hourData = sortedData.slice(0, 60);
+          newHistoricalData[location].temperature.Hour = hourData.map(item => item.temperatureValue).reverse();
+          newHistoricalData[location].decibel.Hour = hourData.map(item => {
+            // Convert to dB
+            const voltageValue = item.soundValue;
+            return Math.abs(voltageValue) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltageValue));
+          }).reverse();
+          
+          // Process for Day view (24 hours)
+          const dayData = processDataByHour(sortedData);
+          newHistoricalData[location].temperature.Day = dayData.temperature;
+          newHistoricalData[location].decibel.Day = dayData.decibel;
+          
+          // Process for Month view (30 days)
+          const monthData = processDataByDay(sortedData, 30);
+          newHistoricalData[location].temperature.Month = monthData.temperature;
+          newHistoricalData[location].decibel.Month = monthData.decibel;
+          
+          // Process for Year view (12 months)
+          const yearData = processDataByMonth(sortedData);
+          newHistoricalData[location].temperature.Year = yearData.temperature;
+          newHistoricalData[location].decibel.Year = yearData.decibel;
+        }
+      });
+      
+      setHistoricalData(newHistoricalData);
+    } catch (err) {
+      console.error("Error fetching historical data:", err);
+    }
+  };
+
+  // Helper function to process data by hour for Day view
+  const processDataByHour = (data) => {
+    const result = {
+      temperature: Array(24).fill(null),
+      decibel: Array(24).fill(null)
+    };
+    
+    // Group by hour
+    const hourlyData = {};
+    data.forEach(reading => {
+      const date = new Date(reading.date);
+      const hour = date.getHours();
+      
+      if (!hourlyData[hour]) {
+        hourlyData[hour] = [];
+      }
+      
+      hourlyData[hour].push(reading);
+    });
+    
+    // Calculate averages for each hour
+    for (let hour = 0; hour < 24; hour++) {
+      if (hourlyData[hour] && hourlyData[hour].length > 0) {
+        // Average temperature
+        const tempSum = hourlyData[hour].reduce((sum, item) => sum + item.temperatureValue, 0);
+        result.temperature[hour] = tempSum / hourlyData[hour].length;
+        
+        // Average decibel (convert from voltage)
+        const decibelValues = hourlyData[hour].map(item => {
+          const voltage = item.soundValue;
+          return Math.abs(voltage) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltage));
+        });
+        const decibelSum = decibelValues.reduce((sum, value) => sum + value, 0);
+        result.decibel[hour] = decibelSum / decibelValues.length;
+      }
+    }
+    
+    return result;
+  };
+
+  // Helper function to process data by day for Month view
+  const processDataByDay = (data, days = 30) => {
+    const result = {
+      temperature: Array(days).fill(null),
+      decibel: Array(days).fill(null)
+    };
+    
+    // Group by day
+    const dailyData = {};
+    data.forEach(reading => {
+      const date = new Date(reading.date);
+      const day = date.getDate();
+      
+      if (!dailyData[day]) {
+        dailyData[day] = [];
+      }
+      
+      dailyData[day].push(reading);
+    });
+    
+    // Calculate averages for each day
+    for (let day = 1; day <= days; day++) {
+      if (dailyData[day] && dailyData[day].length > 0) {
+        // Average temperature
+        const tempSum = dailyData[day].reduce((sum, item) => sum + item.temperatureValue, 0);
+        result.temperature[day - 1] = tempSum / dailyData[day].length;
+        
+        // Average decibel (convert from voltage)
+        const decibelValues = dailyData[day].map(item => {
+          const voltage = item.soundValue;
+          return Math.abs(voltage) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltage));
+        });
+        const decibelSum = decibelValues.reduce((sum, value) => sum + value, 0);
+        result.decibel[day - 1] = decibelSum / decibelValues.length;
+      }
+    }
+    
+    return result;
+  };
+
+  // Helper function to process data by month for Year view
+  const processDataByMonth = (data) => {
+    const result = {
+      temperature: Array(12).fill(null),
+      decibel: Array(12).fill(null)
+    };
+    
+    // Group by month
+    const monthlyData = {};
+    data.forEach(reading => {
+      const date = new Date(reading.date);
+      const month = date.getMonth();
+      
+      if (!monthlyData[month]) {
+        monthlyData[month] = [];
+      }
+      
+      monthlyData[month].push(reading);
+    });
+    
+    // Calculate averages for each month
+    for (let month = 0; month < 12; month++) {
+      if (monthlyData[month] && monthlyData[month].length > 0) {
+        // Average temperature
+        const tempSum = monthlyData[month].reduce((sum, item) => sum + item.temperatureValue, 0);
+        result.temperature[month] = tempSum / monthlyData[month].length;
+        
+        // Average decibel (convert from voltage)
+        const decibelValues = monthlyData[month].map(item => {
+          const voltage = item.soundValue;
+          return Math.abs(voltage) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltage));
+        });
+        const decibelSum = decibelValues.reduce((sum, value) => sum + value, 0);
+        result.decibel[month] = decibelSum / decibelValues.length;
+      }
+    }
+    
+    return result;
+  };
+
   useEffect(() => {
     // Initial data fetch
     fetchSensorData();
+    fetchHistoricalData();
     
-    // Generate simulated historical data (in a real app, you'd fetch this from an API)
-    populateHistoricalData();
+    // Set up intervals for regular updates
+    const currentDataInterval = setInterval(fetchSensorData, 30000); // Every 30 seconds
+    const historicalDataInterval = setInterval(fetchHistoricalData, 5 * 60000); // Every 5 minutes
     
-    // Set up interval for regular updates (every 30 seconds)
-    const interval = setInterval(fetchSensorData, 30000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
+    // Clean up intervals on component unmount
+    return () => {
+      clearInterval(currentDataInterval);
+      clearInterval(historicalDataInterval);
+    };
   }, []);
 
-  useEffect(() => {
-    // Update historical data when new sensor readings come in
-    Object.entries(sensorData).forEach(([location, data]) => {
-      if (data.lastUpdated) {
-        const newHistoricalData = { ...historicalData };
-        
-        // Add latest readings to historical data arrays
-        if (!newHistoricalData[location].temperature.Day.includes(data.temperature)) {
-          newHistoricalData[location].temperature.Day.push(data.temperature);
-          // Keep only last 24 readings
-          if (newHistoricalData[location].temperature.Day.length > 24) {
-            newHistoricalData[location].temperature.Day.shift();
-          }
-        }
-        
-        if (!newHistoricalData[location].decibel.Day.includes(data.decibel)) {
-          newHistoricalData[location].decibel.Day.push(data.decibel);
-          // Keep only last 24 readings
-          if (newHistoricalData[location].decibel.Day.length > 24) {
-            newHistoricalData[location].decibel.Day.shift();
-          }
-        }
-        
-        setHistoricalData(newHistoricalData);
-      }
-    });
-  }, [sensorData]);
-
-  // Example alert data - normally would be derived from sensor readings
+  // Example alert data - derived from sensor readings
   const [alerts, setAlerts] = useState([])
   
   // Update alerts based on sensor data
@@ -368,7 +487,7 @@ const Dashboard = () => {
             location={activeLocation} 
             timeRange={timeRange} 
             currentData={sensorData[activeLocation]} 
-            historicalData={historicalData[activeLocation]}
+            historicalData={historicalData}  // Pass the whole historicalData object
           />
         </CCardBody>
         <CCardFooter>
@@ -481,7 +600,7 @@ const Dashboard = () => {
                       </tr>
                       <tr>
                         <td><strong>Model:</strong></td>
-                        <td>Arduino Nano IoT Sensor v2.1</td>
+                        <td>ESP32 IoT Sensor v2.1</td>
                       </tr>
                       <tr>
                         <td><strong>Firmware:</strong></td>
@@ -489,7 +608,7 @@ const Dashboard = () => {
                       </tr>
                       <tr>
                         <td><strong>Last Update:</strong></td>
-                        <td>March 17, 2025</td>
+                        <td>March 24, 2025</td>
                       </tr>
                     </tbody>
                   </table>
@@ -585,7 +704,7 @@ const Dashboard = () => {
                 <CCol md={6}>
                   <div className="mb-3">
                     <label className="form-label">Reading Frequency</label>
-                    <select defaultValue="60">
+                    <select className="form-select" defaultValue="60">
                       <option value="30">Every 30 seconds</option>
                       <option value="60">Every minute</option>
                       <option value="300">Every 5 minutes</option>

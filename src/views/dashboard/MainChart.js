@@ -3,18 +3,20 @@ import PropTypes from 'prop-types'
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle } from '@coreui/utils'
 
-const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
+const MainChart = ({ location = 'Living Room', timeRange = 'Day', currentData, historicalData }) => {
   const chartRef = useRef(null)
 
   // This would be fetched from your API
   const sensorData = {
     'Living Room': {
       temperature: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [22, 22, 23, 24, 25, 26, 27, 27, 26, 26, 25, 24, 23, 23, 22, 22, 21, 21, 22, 23, 24, 25, 26, 27],
         Month: [21, 22, 23, 24, 25, 26, 27, 26, 25, 24, 23, 22, 21, 22, 23, 24, 25, 26, 27, 26, 25, 24, 23, 22, 23, 24, 25, 26, 27, 28],
         Year: [18, 19, 20, 22, 24, 26, 28, 27, 25, 23, 20, 19]
       },
       decibel: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [45, 44, 43, 44, 50, 55, 60, 65, 70, 68, 65, 60, 55, 50, 48, 47, 46, 45, 44, 45, 50, 52, 48, 45],
         Month: [45, 48, 52, 55, 58, 55, 52, 50, 48, 46, 45, 47, 50, 52, 55, 52, 50, 48, 46, 45, 48, 52, 55, 52, 50, 48, 46, 45, 46, 45],
         Year: [40, 42, 45, 50, 55, 60, 65, 62, 58, 52, 48, 45]
@@ -22,11 +24,13 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
     },
     'Kitchen': {
       temperature: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [24, 24, 25, 26, 27, 28, 29, 29, 28, 28, 27, 26, 25, 25, 24, 24, 24, 24, 25, 26, 27, 28, 29, 29],
         Month: [23, 24, 25, 26, 27, 28, 29, 28, 27, 26, 25, 24, 23, 24, 25, 26, 27, 28, 29, 28, 27, 26, 25, 24, 25, 26, 27, 28, 29, 30],
         Year: [20, 21, 22, 24, 26, 28, 30, 29, 27, 25, 23, 21]
       },
       decibel: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [50, 49, 48, 49, 52, 58, 62, 65, 68, 70, 68, 65, 60, 55, 52, 50, 49, 48, 49, 52, 55, 58, 52, 50],
         Month: [50, 52, 55, 58, 60, 58, 55, 52, 50, 48, 50, 52, 55, 58, 55, 52, 50, 48, 50, 52, 55, 58, 55, 52, 50, 52, 55, 52, 50, 48],
         Year: [45, 48, 52, 58, 62, 65, 68, 65, 62, 58, 52, 50]
@@ -34,11 +38,13 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
     },
     'Bedroom': {
       temperature: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [20, 20, 21, 22, 23, 24, 24, 24, 23, 23, 22, 21, 20, 20, 19, 19, 19, 20, 21, 22, 23, 23, 24, 24],
         Month: [19, 20, 21, 22, 23, 24, 25, 24, 23, 22, 21, 20, 19, 20, 21, 22, 23, 24, 24, 23, 22, 21, 20, 19, 20, 21, 22, 23, 24, 25],
         Year: [16, 17, 18, 20, 22, 24, 26, 25, 23, 21, 19, 17]
       },
       decibel: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [30, 29, 28, 29, 32, 35, 38, 40, 42, 40, 38, 35, 32, 30, 29, 28, 28, 28, 30, 32, 34, 32, 30, 28],
         Month: [30, 32, 35, 38, 40, 38, 35, 32, 30, 28, 30, 32, 35, 38, 35, 32, 30, 28, 30, 32, 35, 38, 35, 32, 30, 28, 30, 32, 30, 28],
         Year: [25, 28, 32, 35, 38, 40, 42, 40, 38, 35, 32, 30]
@@ -46,11 +52,13 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
     },
     'Garage': {
       temperature: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [18, 18, 19, 20, 21, 22, 22, 22, 21, 21, 20, 19, 18, 18, 17, 17, 17, 18, 19, 20, 21, 21, 22, 22],
         Month: [17, 18, 19, 20, 21, 22, 23, 22, 21, 20, 19, 18, 17, 18, 19, 20, 21, 22, 22, 21, 20, 19, 18, 17, 18, 19, 20, 21, 22, 23],
         Year: [14, 15, 16, 18, 20, 22, 24, 23, 21, 19, 17, 15]
       },
       decibel: {
+        Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [35, 34, 33, 34, 38, 42, 45, 48, 50, 48, 45, 42, 40, 38, 36, 35, 34, 33, 35, 38, 40, 38, 35, 33],
         Month: [35, 38, 42, 45, 48, 45, 42, 38, 35, 33, 35, 38, 42, 45, 42, 38, 35, 33, 35, 38, 42, 45, 42, 38, 35, 33, 35, 38, 35, 33],
         Year: [30, 33, 38, 42, 45, 48, 50, 48, 45, 42, 38, 35]
@@ -60,14 +68,14 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
 
   // Generate time labels based on the selected range
   const getTimeLabels = (range) => {
-    if (range === 'Day') {
+    if (range === 'Hour') {
+      return Array.from({ length: 60 }, (_, i) => `${i} min`);
+    } else if (range === 'Day') {
       return Array.from({ length: 24 }, (_, i) => `${i}:00`);
     } else if (range === 'Month') {
       return Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
     } else if (range === 'Year') {
       return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    } else if (range === 'Hour') {
-      return Array.from({ length: 60 }, (_, i) => `${i} min`);
     }
     return [];
   };
@@ -92,11 +100,21 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
     })
   }, [chartRef])
 
-  // Get data for selected location and time range
-  const locationData = sensorData[location] || sensorData['Living Room'];
-  const temperatureData = locationData.temperature[timeRange];
-  const decibelData = locationData.decibel[timeRange];
-  const timeLabels = getTimeLabels(timeRange);
+  const safeData = historicalData || {};
+  const locationData = safeData[location] || {};
+  
+  // Get the appropriate data
+  const temperatureData = 
+    (locationData.temperature && locationData.temperature[timeRange]) 
+      ? locationData.temperature[timeRange] 
+      : [];
+  
+  const decibelData = 
+    (locationData.decibel && locationData.decibel[timeRange]) 
+      ? locationData.decibel[timeRange] 
+      : [];
+      
+  const timeLabels = getTimeLabels(timeRange).reverse();
 
   return (
     <>
@@ -246,6 +264,8 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day' }) => {
 MainChart.propTypes = {
   location: PropTypes.string,
   timeRange: PropTypes.string,
+  currentData: PropTypes.object,
+  historicalData: PropTypes.object
 }
 
 export default MainChart
