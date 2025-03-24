@@ -37,7 +37,7 @@ import MainChart from './MainChart'
 import LocationSelector from './LocationSelector'
 
 const Dashboard = () => {
-  const [activeLocation, setActiveLocation] = useState('Living Room')
+  const [activeLocation, setActiveLocation] = useState('IDIT2')
   const [timeRange, setTimeRange] = useState('Day')
   const [activeTab, setActiveTab] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -45,27 +45,27 @@ const Dashboard = () => {
   
   // Store real-time sensor data
   const [sensorData, setSensorData] = useState({
-    'Living Room': { temperature: 0, decibel: 0, humidity: 0, battery: 90, lastUpdated: null },
-    'Kitchen': { temperature: 0, decibel: 0, humidity: 0, battery: 85, lastUpdated: null },
-    'Bedroom': { temperature: 0, decibel: 0, humidity: 0, battery: 95, lastUpdated: null },
-    'Garage': { temperature: 0, decibel: 0, humidity: 0, battery: 80, lastUpdated: null },
+    'IDIT2': { temperature: 0, decibel: 0, humidity: 0, battery: 90, lastUpdated: null },
+    'Lab de IA': { temperature: 0, decibel: 0, humidity: 0, battery: 85, lastUpdated: null },
+    'Esports': { temperature: 0, decibel: 0, humidity: 0, battery: 95, lastUpdated: null },
+    'J140': { temperature: 0, decibel: 0, humidity: 0, battery: 80, lastUpdated: null },
   })
 
   // Store historical data
   const [historicalData, setHistoricalData] = useState({
-    'Living Room': {
+    'IDIT2': {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
-    'Kitchen': {
+    'Lab de IA': {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
-    'Bedroom': {
+    'Esports': {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
-    'Garage': {
+    'J140': {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     }
@@ -73,10 +73,10 @@ const Dashboard = () => {
   
   // Map locations to sensor IDs
   const locationToSensorId = {
-    'Living Room': 1,
-    'Kitchen': 2,
-    'Bedroom': 3,
-    'Garage': 4
+    'IDIT2': 1,
+    'Lab de IA': 2,
+    'Esports': 3,
+    'J140': 4
   }
 
   // Fetch current data from all sensors
@@ -99,15 +99,9 @@ const Dashboard = () => {
         );
         
         if (location && response.data) {
-          // Convert sound value from voltage to dB
-          const voltageValue = response.data.soundValue;
-          const referenceVoltage = 0.001; // Adjust based on your sensor calibration
-          const decibelValue = Math.abs(voltageValue) < 0.001 ? 0 : 
-                               20 * Math.log10(Math.abs(voltageValue));
-          
           newSensorData[location] = {
             temperature: response.data.temperatureValue,
-            decibel: decibelValue, // Use converted value
+            decibel: response.data.soundValue, // Use value directly without conversion
             humidity: response.data.humidityValue,
             battery: newSensorData[location].battery,
             lastUpdated: response.data.date
@@ -153,11 +147,7 @@ const Dashboard = () => {
           // Process for Hour view (last 60 readings)
           const hourData = sortedData.slice(0, 60);
           newHistoricalData[location].temperature.Hour = hourData.map(item => item.temperatureValue).reverse();
-          newHistoricalData[location].decibel.Hour = hourData.map(item => {
-            // Convert to dB
-            const voltageValue = item.soundValue;
-            return Math.abs(voltageValue) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltageValue));
-          }).reverse();
+          newHistoricalData[location].decibel.Hour = hourData.map(item => item.soundValue).reverse();
           
           // Process for Day view (24 hours)
           const dayData = processDataByHour(sortedData);
@@ -209,13 +199,9 @@ const Dashboard = () => {
         const tempSum = hourlyData[hour].reduce((sum, item) => sum + item.temperatureValue, 0);
         result.temperature[hour] = tempSum / hourlyData[hour].length;
         
-        // Average decibel (convert from voltage)
-        const decibelValues = hourlyData[hour].map(item => {
-          const voltage = item.soundValue;
-          return Math.abs(voltage) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltage));
-        });
-        const decibelSum = decibelValues.reduce((sum, value) => sum + value, 0);
-        result.decibel[hour] = decibelSum / decibelValues.length;
+        // Average decibel - use direct values
+        const decibelSum = hourlyData[hour].reduce((sum, item) => sum + item.soundValue, 0);
+        result.decibel[hour] = decibelSum / hourlyData[hour].length;
       }
     }
     
@@ -249,13 +235,9 @@ const Dashboard = () => {
         const tempSum = dailyData[day].reduce((sum, item) => sum + item.temperatureValue, 0);
         result.temperature[day - 1] = tempSum / dailyData[day].length;
         
-        // Average decibel (convert from voltage)
-        const decibelValues = dailyData[day].map(item => {
-          const voltage = item.soundValue;
-          return Math.abs(voltage) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltage));
-        });
-        const decibelSum = decibelValues.reduce((sum, value) => sum + value, 0);
-        result.decibel[day - 1] = decibelSum / decibelValues.length;
+        // Average decibel - use direct values
+        const decibelSum = dailyData[day].reduce((sum, item) => sum + item.soundValue, 0);
+        result.decibel[day - 1] = decibelSum / dailyData[day].length;
       }
     }
     
@@ -289,13 +271,9 @@ const Dashboard = () => {
         const tempSum = monthlyData[month].reduce((sum, item) => sum + item.temperatureValue, 0);
         result.temperature[month] = tempSum / monthlyData[month].length;
         
-        // Average decibel (convert from voltage)
-        const decibelValues = monthlyData[month].map(item => {
-          const voltage = item.soundValue;
-          return Math.abs(voltage) < 0.001 ? 0 : 20 * Math.log10(Math.abs(voltage));
-        });
-        const decibelSum = decibelValues.reduce((sum, value) => sum + value, 0);
-        result.decibel[month] = decibelSum / decibelValues.length;
+        // Average decibel - use direct values
+        const decibelSum = monthlyData[month].reduce((sum, item) => sum + item.soundValue, 0);
+        result.decibel[month] = decibelSum / monthlyData[month].length;
       }
     }
     
@@ -427,6 +405,89 @@ const Dashboard = () => {
     };
   };
 
+  // Add this function to your Dashboard.js file
+const exportData = () => {
+  // Determine which data to export based on active location and time range
+  const dataToExport = {
+    location: activeLocation,
+    timeRange: timeRange,
+    currentReadings: sensorData[activeLocation],
+    historicalData: {
+      temperature: historicalData[activeLocation].temperature[timeRange],
+      decibel: historicalData[activeLocation].decibel[timeRange]
+    },
+    exportDate: new Date().toISOString(),
+    device: `SN-${locationToSensorId[activeLocation]}`
+  };
+  
+  // Convert to CSV format
+  let csvContent = "data:text/csv;charset=utf-8,";
+  
+  // Add headers
+  csvContent += "Timestamp,Temperature (°C),Noise Level (dB),Humidity (%)\n";
+  
+  // Add current reading
+  csvContent += `${new Date().toISOString()},${dataToExport.currentReadings.temperature},${dataToExport.currentReadings.decibel},${dataToExport.currentReadings.humidity}\n`;
+  
+  // Add historical data if available
+  if (dataToExport.historicalData.temperature.length > 0) {
+    // Get appropriate time labels based on timeRange
+    const timeLabels = getTimeLabels(timeRange);
+    
+    // Add historical rows
+    for (let i = 0; i < dataToExport.historicalData.temperature.length; i++) {
+      const temp = dataToExport.historicalData.temperature[i] || "";
+      const db = dataToExport.historicalData.decibel[i] || "";
+      const timestamp = timeLabels[i] || `Reading ${i+1}`;
+      
+      csvContent += `${timestamp},${temp},${db},\n`;
+    }
+  }
+  
+  // Create download link
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `sensor_data_${activeLocation}_${timeRange}_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  
+  // Trigger download and clean up
+  link.click();
+  document.body.removeChild(link);
+};
+
+// Helper function to get appropriate time labels
+const getTimeLabels = (range) => {
+  const now = new Date();
+  
+  if (range === 'Hour') {
+    return Array.from({ length: 60 }, (_, i) => {
+      const d = new Date(now);
+      d.setMinutes(now.getMinutes() - (59 - i));
+      return d.toISOString();
+    });
+  } else if (range === 'Day') {
+    return Array.from({ length: 24 }, (_, i) => {
+      const d = new Date(now);
+      d.setHours(now.getHours() - (23 - i));
+      return d.toISOString();
+    });
+  } else if (range === 'Month') {
+    return Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (29 - i));
+      return d.toISOString();
+    });
+  } else if (range === 'Year') {
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now);
+      d.setMonth(now.getMonth() - (11 - i));
+      return d.toISOString();
+    });
+  }
+  return [];
+};
+
   return (
     <>
       <LocationSelector 
@@ -464,9 +525,9 @@ const Dashboard = () => {
               <div className="small text-body-secondary">Real-time and historical data</div>
             </CCol>
             <CCol sm={7} className="d-none d-md-block">
-              <CButton color="primary" className="float-end">
-                <CIcon icon={cilCloudDownload} /> Export Data
-              </CButton>
+            <CButton color="primary" className="float-end" onClick={exportData}>
+              <CIcon icon={cilCloudDownload} /> Export Data
+            </CButton>
               <CButtonGroup className="float-end me-3">
                 {['Hour', 'Day', 'Month', 'Year'].map((value) => (
                   <CButton

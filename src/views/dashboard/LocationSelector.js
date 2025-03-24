@@ -13,7 +13,11 @@ import {
   cilHome, 
   cilRestaurant, 
   cilColorBorder,
-  cilGarage 
+  cilGarage, 
+  cilCouch,
+  cilCode,
+  cilGamepad,
+  cilEducation
 } from '@coreui/icons'
 
 const LocationSelector = ({ activeLocation, onLocationChange, sensorData }) => {
@@ -42,10 +46,10 @@ const LocationSelector = ({ activeLocation, onLocationChange, sensorData }) => {
   }
 
   const locations = [
-    { name: 'Living Room', icon: cilHome },
-    { name: 'Kitchen', icon: cilRestaurant },
-    { name: 'Bedroom', icon: cilColorBorder },
-    { name: 'Garage', icon: cilGarage },
+    { name: 'IDIT2', icon: cilCouch },
+    { name: 'Lab de IA', icon: cilCode },
+    { name: 'Esports', icon: cilGamepad },
+    { name: 'J140', icon: cilEducation },
   ]
 
   return (

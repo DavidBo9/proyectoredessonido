@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle } from '@coreui/utils'
 
-const MainChart = ({ location = 'Living Room', timeRange = 'Day', currentData, historicalData }) => {
+const MainChart = ({ location = 'IDIT2', timeRange = 'Day', currentData, historicalData }) => {
   const chartRef = useRef(null)
 
   // This would be fetched from your API
   const sensorData = {
-    'Living Room': {
+    'IDIT2': {
       temperature: {
         Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [22, 22, 23, 24, 25, 26, 27, 27, 26, 26, 25, 24, 23, 23, 22, 22, 21, 21, 22, 23, 24, 25, 26, 27],
@@ -22,7 +22,7 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day', currentData, h
         Year: [40, 42, 45, 50, 55, 60, 65, 62, 58, 52, 48, 45]
       }
     },
-    'Kitchen': {
+    'Lab de IA': {
       temperature: {
         Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [24, 24, 25, 26, 27, 28, 29, 29, 28, 28, 27, 26, 25, 25, 24, 24, 24, 24, 25, 26, 27, 28, 29, 29],
@@ -36,7 +36,7 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day', currentData, h
         Year: [45, 48, 52, 58, 62, 65, 68, 65, 62, 58, 52, 50]
       }
     },
-    'Bedroom': {
+    'Esports': {
       temperature: {
         Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [20, 20, 21, 22, 23, 24, 24, 24, 23, 23, 22, 21, 20, 20, 19, 19, 19, 20, 21, 22, 23, 23, 24, 24],
@@ -50,7 +50,7 @@ const MainChart = ({ location = 'Living Room', timeRange = 'Day', currentData, h
         Year: [25, 28, 32, 35, 38, 40, 42, 40, 38, 35, 32, 30]
       }
     },
-    'Garage': {
+    'J140': {
       temperature: {
         Hour: Array(60).fill(24).map(() => 22 + Math.random() * 6),
         Day: [18, 18, 19, 20, 21, 22, 22, 22, 21, 21, 20, 19, 18, 18, 17, 17, 17, 18, 19, 20, 21, 21, 22, 22],
