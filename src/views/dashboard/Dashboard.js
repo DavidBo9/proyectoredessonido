@@ -37,7 +37,7 @@ import MainChart from './MainChart'
 import LocationSelector from './LocationSelector'
 
 const Dashboard = () => {
-  const [activeLocation, setActiveLocation] = useState('IDIT2')
+  const [activeLocation, setActiveLocation] = useState('Esports')
   const [timeRange, setTimeRange] = useState('Day')
   const [activeTab, setActiveTab] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -45,15 +45,19 @@ const Dashboard = () => {
   
   // Store real-time sensor data
   const [sensorData, setSensorData] = useState({
-    'IDIT2': { temperature: 0, decibel: 0, humidity: 0, battery: 90, lastUpdated: null },
-    'Lab de IA': { temperature: 0, decibel: 0, humidity: 0, battery: 85, lastUpdated: null },
-    'Esports': { temperature: 0, decibel: 0, humidity: 0, battery: 95, lastUpdated: null },
-    'J140': { temperature: 0, decibel: 0, humidity: 0, battery: 80, lastUpdated: null },
+    'Esports': { temperature: 0, decibel: 0, humidity: 0, battery: 90, lastUpdated: null },
+    'Lab de Mecatronica': { temperature: 0, decibel: 0, humidity: 0, battery: 85, lastUpdated: null },
+    'Lab de IA': { temperature: 0, decibel: 0, humidity: 0, battery: 95, lastUpdated: null },
+    'Innovation Lab': { temperature: 0, decibel: 0, humidity: 0, battery: 80, lastUpdated: null },
   })
 
   // Store historical data
   const [historicalData, setHistoricalData] = useState({
-    'IDIT2': {
+    'Esports': {
+      temperature: { Hour: [], Day: [], Month: [], Year: [] },
+      decibel: { Hour: [], Day: [], Month: [], Year: [] }
+    },
+    'Lab de Mecatronica': {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
@@ -61,11 +65,7 @@ const Dashboard = () => {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     },
-    'Esports': {
-      temperature: { Hour: [], Day: [], Month: [], Year: [] },
-      decibel: { Hour: [], Day: [], Month: [], Year: [] }
-    },
-    'J140': {
+    'Innovation Lab': {
       temperature: { Hour: [], Day: [], Month: [], Year: [] },
       decibel: { Hour: [], Day: [], Month: [], Year: [] }
     }
@@ -73,10 +73,10 @@ const Dashboard = () => {
   
   // Map locations to sensor IDs
   const locationToSensorId = {
-    'IDIT2': 1,
-    'Lab de IA': 2,
-    'Esports': 3,
-    'J140': 4
+    'Esports': 1,
+    'Lab de Mecatronica': 2,
+    'Lab de IA': 3,
+    'Innovation Lab': 4
   }
 
   // Fetch current data from all sensors

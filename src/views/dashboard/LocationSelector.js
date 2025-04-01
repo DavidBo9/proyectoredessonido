@@ -46,10 +46,10 @@ const LocationSelector = ({ activeLocation, onLocationChange, sensorData }) => {
   }
 
   const locations = [
-    { name: 'IDIT2', icon: cilCouch },
+    { name: 'Esports', icon: cilGamepad  },
+    { name: 'Lab de Mecatronica', icon: cilCouch },
     { name: 'Lab de IA', icon: cilCode },
-    { name: 'Esports', icon: cilGamepad },
-    { name: 'J140', icon: cilEducation },
+    { name: 'Innovation Lab', icon: cilEducation },
   ]
 
   return (
