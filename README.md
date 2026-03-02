@@ -1,185 +1,239 @@
-# CoreUI Free React Admin Template [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=CoreUI%20-%20Free%React%204%20Admin%20Template%20&url=https://coreui.io&hashtags=bootstrap,admin,template,dashboard,panel,free,angular,react,vue)
+# 🎧 Proyecto Redes Sonido
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![@coreui coreui](https://img.shields.io/badge/@coreui%20-coreui-lightgrey.svg?style=flat-square)](https://github.com/coreui/coreui)
-[![npm package][npm-coreui-badge]][npm-coreui]
-[![NPM downloads][npm-coreui-download]][npm-coreui]
-[![@coreui react](https://img.shields.io/badge/@coreui%20-react-lightgrey.svg?style=flat-square)](https://github.com/coreui/react)
-[![npm package][npm-coreui-react-badge]][npm-coreui-react]
-[![NPM downloads][npm-coreui-react-download]][npm-coreui-react]  
+![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=black)
+![CoreUI](https://img.shields.io/badge/CoreUI-5.x-321FDB?logo=coreui&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-[npm-coreui]: https://www.npmjs.com/package/@coreui/coreui
-[npm-coreui-badge]: https://img.shields.io/npm/v/@coreui/coreui.png?style=flat-square
-[npm-coreui-download]: https://img.shields.io/npm/dm/@coreui/coreui.svg?style=flat-square
-[npm-coreui-react]: https://www.npmjs.com/package/@coreui/react
-[npm-coreui-react-badge]: https://img.shields.io/npm/v/@coreui/react.png?style=flat-square
-[npm-coreui-react-download]: https://img.shields.io/npm/dm/@coreui/react.svg?style=flat-square
-[npm]: https://www.npmjs.com/package/@coreui/react
+Dashboard web para monitoreo de variables ambientales y de sonido en tiempo real, construido sobre CoreUI + React + Vite.
 
-[![Bootstrap Admin Template](https://assets.coreui.io/products/coreui-free-bootstrap-admin-template-light-dark.webp)](https://coreui.io/product/free-react-admin-template/)
+Este proyecto permite visualizar lecturas de **temperatura**, **humedad** y **nivel de sonido (dB)** por ubicación, además de consultar históricos por distintos rangos de tiempo para facilitar análisis y toma de decisiones.
 
-CoreUI is meant to be the UX game changer. Pure & transparent code is devoid of redundant components, so the app is light enough to offer ultimate user experience. This means mobile devices also, where the navigation is just as easy and intuitive as on a desktop or laptop. The CoreUI Layout API lets you customize your project for almost any device – be it Mobile, Web or WebApp – CoreUI covers them all!
+---
 
-## Table of Contents
+## 👥 Créditos
 
-* [Versions](#versions)
-* [CoreUI PRO](#coreui-pro)
-* [CoreUI PRO React Admin Templates](#coreui-pro-react-admin-templates)
-* [Quick Start](#quick-start)
-* [Installation](#installation)
-* [Basic usage](#basic-usage)
-* [What's included](#whats-included)
-* [Documentation](#documentation)
-* [Versioning](#versioning)
-* [Creators](#creators)
-* [Community](#community)
-* [Support CoreUI Development](#support-coreui-development)
-* [Copyright and License](#copyright-and-license)
+Proyecto desarrollado por:
 
-## Versions
+- **Alfredo Barranco**
+- **Bernardo Bojalil**
+- **David Bojalil**
+- **Fernando Hernandez**
 
-* [CoreUI Free Bootstrap Admin Template](https://github.com/coreui/coreui-free-bootstrap-admin-template)
-* [CoreUI Free Angular Admin Template](https://github.com/coreui/coreui-free-angular-admin-template)
-* [CoreUI Free React.js Admin Template (Vite)](https://github.com/coreui/coreui-free-react-admin-template)
-* [CoreUI Free React.js Admin Template (Create React App)](https://github.com/coreui/coreui-free-react-admin-template-cra)
-* [CoreUI Free Vue.js Admin Template](https://github.com/coreui/coreui-free-vue-admin-template)
+---
 
-## CoreUI PRO
+## Liga al Repositorio y Vercel
 
-* 💪  [CoreUI PRO Angular Admin Template](https://coreui.io/product/angular-dashboard-template/)
-* 💪  [CoreUI PRO Bootstrap Admin Template](https://coreui.io/product/bootstrap-dashboard-template/)
-* 💪  [CoreUI PRO Next.js Admin Template](https://coreui.io/product/next-js-dashboard-template/)
-* 💪  [CoreUI PRO React Admin Template](https://coreui.io/product/react-dashboard-template/)
-* 💪  [CoreUI PRO Vue Admin Template](https://coreui.io/product/vue-dashboard-template/)
+Vercel: https://proyectoredessonido.vercel.app/#/dashboard
 
-## CoreUI PRO React Admin Templates
+Repositorio: https://github.com/DavidBo9/proyectoredessonido
 
-| Default Theme | Light Theme |
-| --- | --- |
-| [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_default_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=default) | [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_light_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=light)|
+---
 
-| Modern Theme | Bright Theme |
-| --- | --- |
-| [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_default_v3_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=modern) | [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_light_v3_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=bright)|
+## 📚 Tabla de contenido
 
-## Quick Start
+- [Descripción general](#-descripción-general)
+- [Características principales](#-características-principales)
+- [Tecnologías utilizadas](#-tecnologías-utilizadas)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Requisitos previos](#-requisitos-previos)
+- [Instalación](#-instalación)
+- [Uso en desarrollo](#-uso-en-desarrollo)
+- [Scripts disponibles](#-scripts-disponibles)
+- [Configuración y API](#-configuración-y-api)
+- [Build y despliegue](#-build-y-despliegue)
+- [Buenas prácticas recomendadas](#-buenas-prácticas-recomendadas)
+- [Créditos](#-créditos)
+- [Licencia](#-licencia)
 
-- [Download the latest release](https://github.com/coreui/coreui-free-react-admin-template/archive/refs/heads/main.zip)
-- Clone the repo: `git clone https://github.com/coreui/coreui-free-react-admin-template.git`
+---
 
-### Installation
+## 🧩 Descripción general
 
-``` bash
-$ npm install
-```
+**Proyecto Redes Sonido** es una plataforma de visualización enfocada en monitoreo de laboratorios y espacios técnicos.
 
-or
+Desde una interfaz de administración moderna, se muestran:
 
-``` bash
-$ yarn install
-```
+- Lecturas actuales por zona.
+- Estados visuales para métricas críticas.
+- Tendencias históricas de datos.
+- Navegación por módulos usando layout administrativo responsivo.
 
-### Basic usage
+La base visual parte de CoreUI, pero la lógica de negocio de monitoreo está integrada en el módulo de dashboard.
 
-``` bash
-# dev server with hot reload at http://localhost:3000
-$ npm start 
-```
+---
 
-or 
+## ✨ Características principales
 
-``` bash
-# dev server with hot reload at http://localhost:3000
-$ yarn start
-```
+- 📍 **Monitoreo por ubicación** (ej. Esports, Lab de Mecatrónica, Lab de IA, Innovation Lab).
+- 🌡️ **Variables ambientales** en tiempo real (temperatura y humedad).
+- 🔊 **Medición de sonido** (decibeles) para control de niveles acústicos.
+- 📈 **Históricos por rango de tiempo** (Hour, Day, Month, Year).
+- ⚡ **Interfaz rápida y responsiva** gracias a Vite + React.
+- 🧱 **Arquitectura modular** con componentes reutilizables (CoreUI).
 
-Navigate to [http://localhost:3000](http://localhost:3000). The app will automatically reload if you change any of the source files.
+---
 
-#### Build
+## 🛠 Tecnologías utilizadas
 
-Run `build` to build the project. The build artifacts will be stored in the `build/` directory.
+### Frontend
+- **React 19**
+- **React Router 7**
+- **Redux 5**
+- **Axios**
+- **Chart.js / @coreui/react-chartjs**
 
-```bash
-# build for production with minification
-$ npm run build
-```
+### UI/Estilos
+- **CoreUI React 5**
+- **Sass**
+- **Simplebar**
 
-or
+### Tooling
+- **Vite 6**
+- **ESLint + Prettier**
 
-```bash
-# build for production with minification
-$ yarn build
-```
+---
 
-## What's included
+## 🗂 Estructura del proyecto
 
-Within the download you'll find the following directories and files, logically grouping common assets and providing both compiled and minified variations. You'll see something like this:
-
-```
-coreui-free-react-admin-template
-├── public/          # static files
-│   ├── favicon.ico
+```text
+proyectoredessonido/
+├── public/
 │   └── manifest.json
-│
-├── src/             # project root
-│   ├── assets/      # images, icons, etc.
-│   ├── components/  # common components - header, footer, sidebar, etc.
-│   ├── layouts/     # layout containers
-│   ├── scss/        # scss styles
-│   ├── views/       # application views
-│   ├── _nav.js      # sidebar navigation config
+├── src/
+│   ├── assets/
+│   ├── components/
+│   ├── layout/
+│   ├── scss/
+│   ├── views/
+│   │   ├── dashboard/
+│   │   ├── pages/
+│   │   └── ...
+│   ├── _nav.js
 │   ├── App.js
-│   ├── index.js
-│   ├── routes.js    # routes config
-│   └── store.js     # template state example 
-│
-├── index.html       # html template
-├── ...
+│   ├── routes.js
+│   └── store.js
+├── index.html
 ├── package.json
-├── ...
-└── vite.config.mjs  # vite config
+└── vite.config.mjs
 ```
 
-## Documentation
+---
 
-The documentation for the CoreUI Admin Template is hosted at our website [CoreUI for React](https://coreui.io/react/docs/templates/installation/)
+## ✅ Requisitos previos
 
-## Versioning
+Asegúrate de tener instalado:
 
-For transparency into our release cycle and in striving to maintain backward compatibility, CoreUI Free Admin Template is maintained under [the Semantic Versioning guidelines](http://semver.org/).
+- **Node.js 18+** (recomendado LTS)
+- **npm 9+**
 
-See [the Releases section of our project](https://github.com/coreui/coreui-free-react-admin-template/releases) for changelogs for each release version.
+Verificar versiones:
 
-## Creators
+```bash
+node -v
+npm -v
+```
 
-**Łukasz Holeczek**
+---
 
-* <https://twitter.com/lukaszholeczek>
-* <https://github.com/mrholek>
+## 📦 Instalación
 
-**Andrzej Kopański**
+1. Clona el repositorio:
 
-* <https://github.com/xidedix>
+```bash
+git clone <URL_DEL_REPOSITORIO>
+```
 
-**CoreUI Team**
+2. Entra al proyecto:
 
-* <https://twitter.com/core_ui>
-* <https://github.com/coreui>
-* <https://github.com/orgs/coreui/people>
+```bash
+cd proyectoredessonido
+```
 
-## Community
+3. Instala dependencias:
 
-Get updates on CoreUI's development and chat with the project maintainers and community members.
+```bash
+npm install
+```
 
-- Follow [@core_ui on Twitter](https://twitter.com/core_ui).
-- Read and subscribe to [CoreUI Blog](https://coreui.ui/blog/).
+---
 
-## Support CoreUI Development
+## 🚀 Uso en desarrollo
 
-CoreUI is an MIT-licensed open source project and is completely free to use. However, the amount of effort needed to maintain and develop new features for the project is not sustainable without proper financial backing. You can support development by buying the [CoreUI PRO](https://coreui.io/pricing/?framework=react&src=github-coreui-free-react-admin-template) or by becoming a sponsor via [Open Collective](https://opencollective.com/coreui/).
+Inicia el servidor local:
 
-## Copyright and License
+```bash
+npm start
+```
 
-copyright 2025 creativeLabs Łukasz Holeczek.   
+Por defecto, Vite levanta la aplicación en:
 
-Code released under [the MIT license](https://github.com/coreui/coreui-free-react-admin-template/blob/main/LICENSE).
+- `http://localhost:5173`
+
+---
+
+## 📜 Scripts disponibles
+
+- `npm start` → Inicia entorno de desarrollo con recarga en caliente.
+- `npm run build` → Genera build de producción en `dist/`.
+- `npm run serve` → Previsualiza localmente el build generado.
+- `npm run lint` → Ejecuta validaciones de estilo/código con ESLint.
+
+---
+
+## 🔌 Configuración y API
+
+El dashboard consulta datos remotos mediante peticiones HTTP (Axios) para lecturas en tiempo real e históricos.
+
+### Recomendación para producción
+
+Mover endpoints a variables de entorno (`.env`) para evitar URLs hardcodeadas en componentes:
+
+```env
+VITE_API_BASE_URL=https://tu-api.com
+```
+
+Y consumir con:
+
+```js
+import.meta.env.VITE_API_BASE_URL
+```
+
+Esto facilita cambios entre ambientes (`dev`, `staging`, `prod`).
+
+---
+
+## 🏗 Build y despliegue
+
+1. Compilar:
+
+```bash
+npm run build
+```
+
+2. Verificar build local:
+
+```bash
+npm run serve
+```
+
+3. Desplegar la carpeta `dist/` en tu hosting preferido (Vercel, Netlify, Nginx, etc.).
+
+---
+
+## 🧠 Buenas prácticas recomendadas
+
+- Mantener componentes pequeños y reutilizables.
+- Separar lógica de API en servicios dedicados.
+- Centralizar constantes (ubicaciones, rangos de tiempo, keys).
+- Evitar duplicación de lógica para transformación de históricos.
+- Añadir manejo de errores y estados de carga consistentes en toda la app.
+
+
+---
+
+## 📄 Licencia
+
+Este proyecto se distribuye bajo licencia **MIT**.
+
+Base de interfaz construida sobre **CoreUI Free React Admin Template** (MIT).
